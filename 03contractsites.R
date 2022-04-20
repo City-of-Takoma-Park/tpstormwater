@@ -1,4 +1,4 @@
-# purpose - map stormwater sites identified by anna
+# purpose - map stormwater sites and streetscapes identified by public works
 # date created: 4/19/2022
 
 library(tidyverse)
@@ -70,7 +70,7 @@ bio_labs <- leafletwrappers::label_output(st_drop_geometry(bioretent_shp),
 #
 # pal_bio <- colorFactor(palette = bio_col, domain = bioretention_pnt$Completion %>% sort())
 
-
+# functions for mapping bioretention structures and streetscapes
 bio_marker_leg <- function(basemap) {
   basemap %>%
     addCircleMarkers(
@@ -102,7 +102,7 @@ map_streetscape <- function(basemap){
     addLegend(pal = pal_type, values = ~ type, group = "Streetscapes", data = streetscape_shp, title = "Streetscapes")
 }
 
-
+# function for generating map with different provider tiles
 map_bioretent <- function(providertype = "Esri"){
   leaflet() %>%
     addProviderTiles(providers[[providertype]]) %>%
