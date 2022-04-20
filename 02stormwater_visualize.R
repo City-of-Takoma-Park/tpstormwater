@@ -94,7 +94,23 @@ bioretention_test_2 <- st_read("./data/bioretent_test/Bioretention_Area/Bioreten
 bioretention_new <- st_read("./data/source/Bioretention_Area_new/Bioretention_Area.shp") %>%
   st_transform(4326)
 
+# write layers
+excelwrite <- function(str){
+  # browser()
+  str_obj <- ensym(str)
 
+  openxlsx::write.xlsx(st_drop_geometry(str), paste0("./data/output/excel_shps/", as.character(str_obj), ".xlsx"), asTable = T)
+
+}
+
+excelwrite(bioretention_new)
+
+excelwrite(stormwater_structures_new)
+
+
+# leaflet(bioretention_new) %>%
+#   addProviderTiles(provider = "CartoDB") %>%
+#   addPolygons()
 
 drain_area_new <-st_layers("./data/source/drainagearea_new.gdb")
 
@@ -274,7 +290,7 @@ demog_data_map <- leaflet(bg_shapes_join) %>%
   addpoly_legend_demog(var = "disab_pct", group_name = overlay_groups[12]) %>%
   addpoly_legend_demog(var = "vehic_avail_pct", group_name = overlay_groups[13]) %>%
   addLayersControl(overlayGroups = overlay_groups, data = bg_shapes_join, options = layersControlOptions(collapsed = F)) %>%
-  hideGroup(overlay_groups[-c(1, 4)]) %>%
+  hideGroup(overlay_groups[-c(1)]) %>%
   addPolylines(group = overlay_groups[1], data = stormwater_conveyance, stroke = T, weight = 2.25, fill = T, fillColor = "Blue")
 
 summary(stormwater_structures$str_type %>% as.factor)
@@ -304,7 +320,7 @@ demog_data_map_cluster <- leaflet(bg_shapes_join) %>%
   addpoly_legend_demog(var = "disab_pct", group_name = overlay_groups[12]) %>%
   addpoly_legend_demog(var = "vehic_avail_pct", group_name = overlay_groups[13]) %>%
   addLayersControl(overlayGroups = overlay_groups, data = bg_shapes_join, options = layersControlOptions(collapsed = F)) %>%
-  hideGroup(overlay_groups[-c(1, 4)]) %>%
+  hideGroup(overlay_groups[-c(1)]) %>%
   addPolylines(group = overlay_groups[1], data = stormwater_conveyance, stroke = T, weight = 2.25, fill = T, fillColor = "Blue")
 
 
@@ -400,7 +416,7 @@ demog_data_map_points <- leaflet(bg_shapes_join) %>%
   addpoly_legend_demog(var = "vehic_avail_pct", group_name = overlay_groups_struct[13]) %>%
   addLegend(pal = pal_stormwater, values = ~ str_name, group = overlay_groups_struct[1], data = stormwater_structures, title = "Stormwater structures") %>%
   addLayersControl(overlayGroups = overlay_groups_struct, data = bg_shapes_join, options = layersControlOptions(collapsed = F)) %>%
-  hideGroup(overlay_groups_struct[-c(1, 4)]) %>%
+  hideGroup(overlay_groups_struct[-c(1)]) %>%
   addPolylines(group = overlay_groups_struct[2], data = stormwater_conveyance, stroke = T, weight = 2.25, fill = T, fillColor = "Blue")
 
 htmlwidgets::saveWidget(demog_data_map_points, file = "./data/output/stormwater_structs_pointstype.html", selfcontained = F)
@@ -586,7 +602,7 @@ demog_data_map_points_multistruct <- leaflet(bg_shapes_join) %>%
   strm_markerleg(unique_str_types[10]) %>%
   addLayersControl(overlayGroups = overlay_groups_multi_struct, data = bg_shapes_join, options = layersControlOptions(collapsed = F), position = "topleft") %>%
   bio_marker_leg() %>%
-  hideGroup(overlay_groups_multi_struct[-c(1, 15)]) %>%
+  hideGroup(overlay_groups_multi_struct[-c(1)]) %>%
   # addpoly_legend(df_select = st_drop_geometry(bioretention_new),
   #                pal_funct_select = pal_bioretent,
   #                variable_select = "Sto_Volume",
@@ -599,6 +615,8 @@ demog_data_map_points_multistruct <- leaflet(bg_shapes_join) %>%
 
 htmlwidgets::saveWidget(demog_data_map_points_multistruct, "data/output/demog_data_map_points_multistruct.html", selfcontained = F)
 htmlwidgets::saveWidget(demog_data_map_points_multistruct, "./data/output/structure-map.html", selfcontained = T)
+htmlwidgets::saveWidget(demog_data_map_points_multistruct, "./data/output/structures-map.html", selfcontained = T)
+
 
 # renv::init()
 
@@ -629,7 +647,7 @@ demog_data_map_points_multiclust <- leaflet(bg_shapes_join) %>%
   addpoly_legend_demog(var = "disab_pct", group_name = overlay_groups_multi_struct[22]) %>%
   addpoly_legend_demog(var = "vehic_avail_pct", group_name = overlay_groups_multi_struct[23]) %>%
   addLayersControl(overlayGroups = overlay_groups_multi_struct, data = bg_shapes_join, options = layersControlOptions(collapsed = F), position = "topleft") %>%
-  hideGroup(overlay_groups_multi_struct[-c(1, 14)]) %>%
+  hideGroup(overlay_groups_multi_struct[-c(1)]) %>%
   addPolylines(group = overlay_groups_multi_struct[2], data = stormwater_conveyance, stroke = T, weight = 2.25, fill = T, fillColor = "Blue")
 
 htmlwidgets::saveWidget(demog_data_map_points_multiclust, "data/output/demog_data_map_points_multiclust.html", selfcontained = F)

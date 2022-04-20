@@ -445,9 +445,15 @@
     },
     "leafletwrappers": {
       "Package": "leafletwrappers",
-      "Version": "0.0.0.9100",
-      "Source": "unknown",
-      "Hash": "effd0eead47a6b3818afdb4b43887f6a"
+      "Version": "0.0.0.9200",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteUsername": "dpowerstp",
+      "RemoteRepo": "leafletwrappers",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "f5f3da24e62d23e88e97f3aaf9f247e9ad61fd54",
+      "RemoteHost": "api.github.com",
+      "Hash": "cc2da7638ac47689ba16d857b885a3a0"
     },
     "lifecycle": {
       "Package": "lifecycle",
