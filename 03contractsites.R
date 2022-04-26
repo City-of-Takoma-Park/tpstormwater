@@ -10,26 +10,41 @@ library(tidygeocoder)
 # read in
 bioretent <- openxlsx::read.xlsx("./data/contract_sites/contract sites.xlsx", sheet = "Bioretention Sites") %>%
   rename_all(tolower) %>%
-  mutate(addressfull = paste0(location, ", Takoma Park, MD"))
+  mutate(addressfull = paste0(location, ", Takoma Park, MD")) %>%
+  rename(area.sq.ft. =  `area.(sq.ft.)`)
 
-bioretent_addresses <- tidygeocoder::geo(bioretent$addressfull, full_results = T, return_type = "geographies", method = "census")
+biocols <- colnames(bioretent)
+
+bioretent_addresses <- tidygeocoder::geo(bioretent$addressfull %>% unique(), full_results = T, return_type = "geographies", method = "census")
 
 
 bioretent_shp <- bioretent_addresses %>%
   # filter(!is.na(long)) %>%
   st_as_sf(coords = c("long", "lat"), crs = 4326, na.fail = F) %>%
   left_join(bioretent, by= c("address" = "addressfull")) %>%
-  rename(area.sq.ft. =  `area.(sq.ft.)`) %>%
   st_cast("POINT")
 
 
 saveRDS(bioretent_shp, file = "./data/output/bioretent_shp.rds")
 
 
+# read in missing bioretention corrected by public works
+bioretent_missing_fixed <- read.csv("./data/processed/bioretent_missing_fixed.csv")
+
+bioretent_missing_adjst <- bioretent_missing_fixed %>%
+  filter(GPS.coordinates..Anna. != "repeat") %>%
+  select(address, grep("addressfull", biocols, invert = T, value = T), GPS.coordinates..Anna.) %>%
+  separate(GPS.coordinates..Anna., into = c("lat", "long"), sep = ",") %>%
+  st_as_sf(coords = c("long", "lat"), crs = 4326, na.fail = F)
+
+
+bioretent_shp_fixed <- bioretent_shp %>%
+  select(address, grep("addressfull", biocols, invert = T, value = T)) %>%
+  filter(!address %in% bioretent_missing_adjst$address) %>%
+  rbind(bioretent_missing_adjst)
 
 # bioretention_new <- st_read("./data/source/Bioretention_Area_new/Bioretention_Area.shp") %>%
 #   st_transform(4326)
-
 
 # read in and create sf from streetscapes
 streetscape <- openxlsx::read.xlsx("./data/contract_sites/contract sites.xlsx", sheet = "Streetscape Sites (UPDATED)") %>%
@@ -47,7 +62,7 @@ streetscape_shp <- streetscape %>%
   st_cast("POINT")
 
 # create palette bioretention
-pal_bioretent <- pal_numeric(var = "area.sq.ft.", df = st_drop_geometry(bioretent_shp), colors = "PRGn")
+pal_bioretent <- pal_numeric(var = "area.sq.ft.", df = st_drop_geometry(bioretent_shp_fixed), colors = "PRGn")
 
 # bioretention_pnt <- bioretention_new %>%
 #   st_drop_geometry() %>%
@@ -59,7 +74,7 @@ pal_bioretent <- pal_numeric(var = "area.sq.ft.", df = st_drop_geometry(bioreten
 
 p <- "<p></p>"
 
-bio_labs <- leafletwrappers::label_output(st_drop_geometry(bioretent_shp),
+bio_labs <- leafletwrappers::label_output(st_drop_geometry(bioretent_shp_fixed),
                                           label_text =
                                             "Site name: {site.name}{p}
                                                  Type: {type}{p}
@@ -75,21 +90,22 @@ bio_marker_leg <- function(basemap) {
   basemap %>%
     addCircleMarkers(
       radius = 0.1,
-      color = ~ pal_bioretent(area.sq.ft.),
+      color = "#BF40BF",
       group = "Bioretention structures",
       stroke = T,
       weight = 10,
-      data = bioretent_shp,
+      opacity = 0.8,
+      data = bioretent_shp_fixed,
       popup = ~ bio_labs,
-    ) %>%
-    addLegend(pal = pal_bioretent,
-              values = ~ area.sq.ft.,
-              group = "Bioretention structures",
-              data = bioretent_shp,
-              title = "Bioretention area (sq ft.)")
+    )
+    # addLegend(pal = "#CF9FFF",
+    #           values = ~ area.sq.ft.,
+    #           group = "Bioretention structures",
+    #           data = bioretent_shp_fixed,
+    #           title = "Bioretention area (sq ft.)")
 }
 
-pal_type <- leaflet::colorFactor(palette = RColorBrewer::brewer.pal(4, "Set1"), domain = streetscape_shp$type)
+pal_type <- leaflet::colorFactor(palette = RColorBrewer::brewer.pal(5, "Set1")[-4], domain = streetscape_shp$type)
 
 street_labs <- label_output(streetscape_shp, "Site name: {site.name}{p}
                             Typer: {type}{p}
@@ -135,7 +151,7 @@ htmlwidgets::saveWidget(default_streetscape, "./data/output/default_streetscape.
 
 
 # identify missing
-bioretent_missing <- bioretent_shp %>%
+bioretent_missing <- bioretent_shp_fixed %>%
   filter(st_is_empty(.))
 
 streetscape_missing <- streetscape_shp %>%
