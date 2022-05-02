@@ -149,6 +149,10 @@ htmlwidgets::saveWidget(esri_streetscape, "./data/output/esri_streetscape.html")
 htmlwidgets::saveWidget(cart_streetscape, "./data/output/cart_streetscape.html")
 htmlwidgets::saveWidget(default_streetscape, "./data/output/default_streetscape.html")
 
+# write final
+htmlwidgets::saveWidget(esri_streetscape, "./data/output/streetscape-map.html")
+
+
 
 # identify missing
 bioretent_missing <- bioretent_shp_fixed %>%
